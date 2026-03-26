@@ -1,11 +1,18 @@
 <script>
 	import RightIndicator from '$lib/components/RightIndicator.svelte';
 	import { resolve } from '$app/paths';
-	import { remindersStore } from '$lib/stores/reminder.store.js';
+	import { remindersStore, reminderUIStore } from '$lib/stores/reminder.store.js';
+	import { page } from '$app/state';
 
-	export let data;
+	const { data, children } = $props();
 
-	$: remindersStore.setReminders(data);
+	$effect(() => {
+		const perPage = Number(page.url.searchParams.get('limit') || 10);
+		const currentPage = Number(page.url.searchParams.get('page') || 1);
+
+		remindersStore.setReminders(data);
+		reminderUIStore.setPagination(data.total, perPage, currentPage);
+	});
 </script>
 
 <div class="drawer lg:drawer-open">
@@ -33,7 +40,7 @@
 		</nav>
 
 		<div class="p-4">
-			<slot />
+			{@render children?.()}
 		</div>
 	</div>
 

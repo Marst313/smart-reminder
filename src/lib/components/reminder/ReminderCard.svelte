@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import type { TReminder } from '$lib/stores/reminder.store';
-	import { remindersStore } from '$lib/stores/reminder.store';
 
 	interface Props {
 		reminder: TReminder;
@@ -63,37 +62,10 @@
 				method="POST"
 				action="?/toggleComplete"
 				use:enhance={() => {
-					// Optimistic update - langsung update store
-					remindersStore.update((store) => {
-						if (!store) return store;
-						const updatedReminders = store.reminders.map((r) =>
-							r.id === reminder.id ? { ...r, is_completed: !r.is_completed } : r
-						);
-
-						console.log(updatedReminders);
-						return {
-							...store,
-							reminders: updatedReminders,
-							active: updatedReminders.filter((r) => !r.is_completed).length,
-							completed: updatedReminders.filter((r) => r.is_completed).length
-						};
-					});
-
-					return async ({ result }) => {
-						if (result.type === 'failure') {
-							remindersStore.update((store) => {
-								if (!store) return store;
-								const revertedReminders = store.reminders.map((r) =>
-									r.id === reminder.id ? { ...r, is_completed: reminder.is_completed } : r
-								);
-								return {
-									...store,
-									reminders: revertedReminders,
-									active: revertedReminders.filter((r) => !r.is_completed).length,
-									completed: revertedReminders.filter((r) => r.is_completed).length
-								};
-							});
-						}
+					return async ({ update }) => {
+						await update({
+							reset: false
+						});
 					};
 				}}
 			>
@@ -183,6 +155,32 @@
 
 			<!-- Actions -->
 			<div class="flex gap-2">
+				<form method="POST" action="?/create">
+					<input type="hidden" name="title" value={reminder.title} />
+					<input type="hidden" name="description" value={reminder.description} />
+					<input type="hidden" name="date" value={reminder.date.split('T')[0]} />
+					<input type="hidden" name="time" value={reminder.time.slice(11, 16)} />
+					<input type="hidden" name="category" value={reminder.category} />
+					<input type="hidden" name="priority" value={reminder.priority} />
+					<input type="hidden" name="recurring" value={reminder.recurring ? 'on' : ''} />
+
+					<button class="btn btn-ghost btn-sm" type="submit" aria-label="Edit reminder">
+						<svg
+							class="h-5 w-5"
+							xmlns="http://www.w3.org/2000/svg"
+							width="24"
+							height="24"
+							viewBox="0 0 24 24"
+							><g fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"
+								><path
+									d="M0 2a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1.5a1 1 0 1 1-2 0V2H2v14h1.5a1 1 0 1 1 0 2H2a2 2 0 0 1-2-2z"
+								/><path
+									d="M8 6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z"
+								/></g
+							></svg
+						>
+					</button>
+				</form>
 				<button
 					class="btn btn-ghost btn-sm"
 					onclick={() => onEdit(reminder)}

@@ -50,6 +50,12 @@ export type TReminderUI = {
 		priority: string;
 		sortBy: string;
 	};
+
+	pagination: {
+		perPage: number;
+		currentPage: number;
+		totalPage: number;
+	};
 };
 
 function createReminderStore() {
@@ -98,6 +104,8 @@ function createReminderStore() {
 	};
 }
 
+export const remindersStore = createReminderStore();
+
 function createReminderUIStore() {
 	const { subscribe, update, set } = writable<TReminderUI>({
 		showModal: false,
@@ -118,6 +126,11 @@ function createReminderUIStore() {
 			status: 'all',
 			priority: 'all',
 			sortBy: 'date'
+		},
+		pagination: {
+			perPage: 10,
+			currentPage: 1,
+			totalPage: 0
 		}
 	});
 
@@ -217,6 +230,69 @@ function createReminderUIStore() {
 			}));
 		},
 
+		// SET PAGINATIOn
+		setPagination: (total: number, perPage: number, currentPage: number) => {
+			update((store) => {
+				return {
+					...store,
+					pagination: {
+						...store.pagination,
+						totalPage: Math.ceil(total / perPage),
+						perPage,
+						currentPage
+					}
+				};
+			});
+		},
+
+		// Update pagination
+		updatePerPage: (perPage: number, total: number) => {
+			update((store) => ({
+				...store,
+				pagination: {
+					...store.pagination,
+					perPage,
+					totalPage: Math.ceil(total / perPage),
+					currentPage: 1
+				}
+			}));
+		},
+
+		updatePage: (page: number) => {
+			update((store) => {
+				// HANLDING LAST PAGE
+				if (page > store.pagination.totalPage) {
+					return {
+						...store,
+						pagination: {
+							...store.pagination,
+							currentPage: 1
+						}
+					};
+				}
+
+				// HANLDING FIRST PAGE
+				if (page < 1) {
+					return {
+						...store,
+						pagination: {
+							...store.pagination,
+							currentPage: store.pagination.totalPage
+						}
+					};
+				}
+
+				// NORMAL PAGE
+				return {
+					...store,
+					pagination: {
+						...store.pagination,
+						currentPage: page
+					}
+				};
+			});
+		},
+
 		reset: () => {
 			set({
 				showModal: false,
@@ -237,11 +313,15 @@ function createReminderUIStore() {
 					status: 'all',
 					priority: 'all',
 					sortBy: 'date'
+				},
+				pagination: {
+					perPage: 10,
+					currentPage: 1,
+					totalPage: 20
 				}
 			});
 		}
 	};
 }
 
-export const remindersStore = createReminderStore();
 export const reminderUIStore = createReminderUIStore();

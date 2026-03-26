@@ -19,7 +19,8 @@ export const authApi = {
 
 // Reminder APIs
 export const reminderApi = {
-	getAll: (token: string): Promise<TReminderResponse> => api.get('reminders', token),
+	getAll: (token: string, params?: { limit: number; offset: number }): Promise<TReminderResponse> =>
+		api.get('reminders', token, params),
 
 	getById: (token: string, id: number) => api.get(`reminders/${id}`, token),
 

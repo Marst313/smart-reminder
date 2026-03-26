@@ -8,6 +8,7 @@
 	import ReminderCard from '$lib/components/reminder/ReminderCard.svelte';
 	import ReminderModal from '$lib/components/reminder/ReminderModal.svelte';
 	import ReminderDeleteModal from '$lib/components/reminder/ReminderDeleteModal.svelte';
+	import Pagination from '$lib/components/reminder/Pagination.svelte';
 
 	// Computed filtered reminders
 	let filteredReminders = $derived.by(() => {
@@ -125,13 +126,9 @@
 			{/each}
 		{/if}
 
-		<div class="join flex w-full items-center justify-center">
-			<button class="join-item btn bg-slate-700">1</button>
-			<button class="join-item btn bg-slate-700">2</button>
-			<button class="join-item btn btn-disabled bg-slate-700">...</button>
-			<button class="join-item btn bg-slate-700">99</button>
-			<button class="join-item btn bg-slate-700">100</button>
-		</div>
+		<Pagination
+			onPerPageChange={(perPage, total) => reminderUIStore.updatePerPage(perPage, total)}
+		/>
 	</div>
 </main>
 

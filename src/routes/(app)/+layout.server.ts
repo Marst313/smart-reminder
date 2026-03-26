@@ -3,11 +3,16 @@ import type { TReminder } from '$lib/stores/reminder.store';
 import { isAfter, isBefore, parseISO } from 'date-fns';
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = async ({ cookies }) => {
+export const load: LayoutServerLoad = async ({ url, cookies }) => {
 	const token = cookies.get('token') || '';
-	const result = await reminderApi.getAll(token);
+	const page = Number(url.searchParams.get('page') || 1);
+	const limit = Number(url.searchParams.get('limit') || 10);
 
-	const reminders = result.data.data;
+	const offset = (page - 1) * limit;
+
+	const result = await reminderApi.getAll(token, { limit, offset });
+
+	const reminders = result.data.reminders;
 
 	const now = new Date();
 
@@ -25,13 +30,12 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
 		return isBefore(reminderDate, now) && !r.is_completed;
 	});
 
-	const active = reminders.filter((r: TReminder) => r.is_completed === false).length;
 	const completed = reminders.filter((r: TReminder) => r.is_completed === true).length;
 
 	return {
-		total: reminders.length,
+		total: result.data.total,
 		upcoming: upcoming.length,
-		active: active,
+		active: result.data.active,
 		late: late.length,
 		completed: completed,
 		isLoading: false,

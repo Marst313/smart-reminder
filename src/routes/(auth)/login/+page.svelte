@@ -25,8 +25,6 @@
 	}
 
 	onMount(() => {
-		console.log($auth);
-
 		if ($auth.isAuthenticated) {
 			goto(resolve('/dashboard'));
 		}
